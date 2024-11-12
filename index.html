@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Me / Block Game</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+      flex-direction: column;
+      text-align: center;
+    }
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 80vh;
+      overflow: hidden;
+    }
+    .button {
+      position: absolute;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #findMeBtn {
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 16px;
+    }
+    .blockBtn {
+      background-color: #F44336;
+      color: white;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .instructions {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .counter {
+      font-size: 20px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="title">Click "Find Me" to start the game.</div>
+  <div class="instructions">
+    If you click the "Block", you lose.<br>
+    If you cannot click "Find Me" in 5 seconds, you lose.
+  </div>
+  <div class="container">
+    <div class="counter">
+      <span id="blockCount">Block Buttons: 0</span>
+    </div>
+    <button id="findMeBtn" class="button" onclick="clickFindMe()">Find Me</button>
+    <button class="button blockBtn" onclick="gameOver()">Block</button>
+  </div>
+
+  <script>
+    let blockCount = 1; // Start with one "Block" button
+    const maxBlockCount = 300;
+    let gameOverFlag = false; // Flag to check if game is over
+    let timer; // Timer variable for 5-second countdown
+
+    const container = document.querySelector('.container');
+    const blockCounter = document.getElementById("blockCount");
+    const findMeBtn = document.getElementById("findMeBtn");
+
+    function getRandomPosition() {
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const buttonSize = 100; // Approximate button size
+
+      const x = Math.floor(Math.random() * (containerWidth - buttonSize));
+      const y = Math.floor(Math.random() * (containerHeight - buttonSize));
+
+      return { x, y };
+    }
+
+    function moveButton(button) {
+      const position = getRandomPosition();
+      button.style.left = position.x + "px";
+      button.style.top = position.y + "px";
+    }
+
+    function createBlockButton() {
+      if (blockCount >= maxBlockCount) {
+        alert("Block button reached 300! Game over.");
+        resetGame();
+        return;
+      }
+
+      const blockBtn = document.createElement("button");
+      blockBtn.classList.add("button", "blockBtn");
+      blockBtn.textContent = "Block";
+      blockBtn.onclick = gameOver;
+      container.appendChild(blockBtn);
+      moveButton(blockBtn);
+
+      blockCount++;
+      blockCounter.textContent = `Block Buttons: ${blockCount}`;
+    }
+
+    function clickFindMe() {
+      if (gameOverFlag) return; // Prevent further clicks if game is over
+
+      // Reset the 5-second timer each time "Find Me" is clicked
+      resetTimer();
+
+      // Move the "Find Me" button and create a new "Block" button
+      moveButton(findMeBtn);
+      createBlockButton();
+    }
+
+    function gameOver() {
+      gameOverFlag = true;
+      alert("Game Over! You clicked a Block button or ran out of time.");
+      
+      // Disable all buttons by setting their onclick to null
+      document.querySelectorAll('.button').forEach(button => {
+        button.onclick = null;
+      });
+
+      // Clear the timer to prevent further countdown
+      clearTimeout(timer);
+    }
+
+    function resetTimer() {
+      clearTimeout(timer); // Clear any previous timer
+      timer = setTimeout(gameOver, 5000); // Start a new 5-second timer
+    }
+
+    function resetGame() {
+      blockCount = 1;
+      blockCounter.textContent = `Block Buttons: ${blockCount}`;
+      gameOverFlag = false;
+
+      // Remove all extra Block buttons
+      document.querySelectorAll('.blockBtn').forEach((button, index) => {
+        if (index > 0) button.remove(); // Keep only the first Block button
+      });
+
+      // Reset the position of "Find Me" and the initial "Block" button
+      moveButton(findMeBtn);
+      moveButton(document.querySelector('.blockBtn'));
+
+      // Restart the timer
+      resetTimer();
+    }
+
+    // Set initial button positions and start the timer
+    moveButton(findMeBtn);
+    moveButton(document.querySelector('.blockBtn'));
+    resetTimer();
+  </script>
+</body>
+</html>
